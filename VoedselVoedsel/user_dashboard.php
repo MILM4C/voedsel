@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Verkrijg de rol van de ingelogde gebruiker
+// Role checkerssssssssssss
 $user_role = $_SESSION['role'];
 ?>
 
@@ -36,7 +36,7 @@ $user_role = $_SESSION['role'];
             font-size: 16px;
             font-weight: bold;
             color: white;
-            background-color: #dc3545; /* Rood voor uitloggen */
+            background-color: #dc3545; 
             border: 1px solid #c82333;
             border-radius: 5px;
             text-decoration: none;
@@ -78,7 +78,7 @@ $user_role = $_SESSION['role'];
             text-decoration: none;
             border: 0;
             transition: background-color 0.3s;
-            flex: 1 1 auto; /* Zorgt ervoor dat knoppen flexibel zijn */
+            flex: 1 1 auto; 
         }
 
         .button:hover {
@@ -89,7 +89,6 @@ $user_role = $_SESSION['role'];
             border-right: 2px solid #0056b3;
         }
 
-        /* Responsieve aanpassingen */
         @media (max-width: 600px) {
             .button-wrapper {
                 flex-direction: column;
@@ -110,13 +109,14 @@ $user_role = $_SESSION['role'];
         <div class="button-wrapper">
             <?php if ($user_role === 'directie'): ?>
                 <a href="manage_users.php" class="button">Beheer Gebruikers</a>
+                <a href="voedselpakketten.php" class="button">Voedselpakket Maken</a>
+                <a href="klantenbeheer.php" class="button">Beheer Klanten</a>
             <?php endif; ?>
-            <a href="manage_products.php" class="button">Beheer Producten</a>
-            <a href="view_suppliers.php" class="button">Beheer Leveranciers</a>
+            <?php if ($user_role === 'magazijnmedewerker' || $user_role === 'directie'): ?>
+                <a href="manage_products.php" class="button">Beheer Producten</a>
+                <a href="view_suppliers.php" class="button">Beheer Leveranciers</a>
+            <?php endif; ?>
         </div>
     </div>
-
-    <!-- Hier komen de adminfunctionaliteiten -->
-
 </body>
 </html>

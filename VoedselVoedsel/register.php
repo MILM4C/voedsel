@@ -1,17 +1,17 @@
 <?php
-// register.php
+
 require 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
-    $role = $_POST['role']; // Bijvoorbeeld: 'vrijwilliger'
+    $role = $_POST['role']; 
 
     if (!empty($username) && !empty($password) && !empty($role)) {
-        // Encrypt the password
+        
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-        // Insert user into database
+        
         $stmt = $pdo->prepare('INSERT INTO users (Username, PasswordHash, Role) VALUES (?, ?, ?)');
         $stmt->execute([$username, $passwordHash, $role]);
 
