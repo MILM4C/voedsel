@@ -1,15 +1,14 @@
 <?php
 session_start();
-include 'config.php';  
+include 'config.php';  // Zorg voor correcte databaseverbinding
+include 'autoload.php'; // Laad de benodigde klassen
 
-// Controleer of de gebruiker ingelogd is
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Controleer of de gebruiker is ingelogd en de juiste rol heeft
+User::requireLogin();
+$user_role = User::getUserRole();  // Haal de rol van de ingelogde gebruiker op
 
-// Haal alle pakketten op
-$query = "SELECT * FROM pakketten";
+// Haal specifieke kolommen op
+$query = "SELECT PakketID, Samenstelling, DatumAangemaakt FROM pakketten";
 $result = $conn->query($query);
 ?>
 
@@ -19,45 +18,16 @@ $result = $conn->query($query);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voedselpakketten Overzicht</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        .button {
-            display: inline-block;
-            padding: 10px 15px;
-            font-size: 16px;
-            color: white;
-            background-color: #007BFF;
-            text-align: center;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-top: 10px;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
-        .delete-button {
-            background-color: #dc3545;
-        }
-        .delete-button:hover {
-            background-color: #c82333;
-        }
-    </style>
+    <link rel="stylesheet" href="css/voedselpakket.css"> 
 </head>
 <body>
     <h1>Voedselpakketten Overzicht</h1>
-    <a href="create_voedselpakket.php" class="button">Nieuw Voedselpakket Maken</a>
-    <a href="user_dashboard.php" class="button">Terug naar Dashboard</a>
+
+    <div class="button-container">
+        <a href="create_voedselpakket.php" class="button">Nieuw Voedselpakket Maken</a>
+        <a href="user_dashboard.php" class="button">Terug naar Dashboard</a>
+    </div>
+
     <table>
         <tr>
             <th>Pakket ID</th>

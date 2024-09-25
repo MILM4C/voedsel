@@ -1,0 +1,103 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #007BFF;
+    color: white;
+}
+
+.add-button, .back-button {
+    display: block;
+    width: 200px;
+    margin: 20px auto;
+    padding: 10px;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.add-button {
+    background-color: #28a745;
+}
+
+.add-button:hover {
+    background-color: #218838;
+}
+
+.back-button {
+    background-color: #6c757d;
+}
+
+.back-button:hover {
+    background-color: #5a6268;
+}
+
+.edit-button, .delete-button {
+    display: inline-block;
+    padding: 5px 10px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-right: 10px;  
+}
+
+.edit-button {
+    background-color: #0fff07;
+    color: white;
+}
+
+.edit-button:hover {
+    background-color: #00ff6a;
+}
+
+.delete-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}
+
+.search-bar {
+    text-align: center; 
+    margin: 20px auto;
+}
+
+.search-bar input[type="text"] {
+    padding: 10px;
+    width: 300px; 
+    margin-right: 10px; 
+}
+
+.search-bar input[type="submit"] {
+    padding: 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-bar input[type="submit"]:hover {
+    background-color: #0056b3; 
+}

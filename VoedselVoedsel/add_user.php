@@ -1,12 +1,13 @@
 <?php
 session_start();
-include 'config.php';
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
-// the main role checker baby
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'directie') {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
+
+// Vereist dat de gebruiker een van de toegestane rollen heeft 
+User::requireRole(['directie']);
 
 // Verwerken van het formulier om een nieuwe gebruiker toe te voegen
 if (isset($_POST['add_user'])) {
@@ -35,64 +36,7 @@ if (isset($_POST['add_user'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nieuwe Gebruiker Toevoegen</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .form-group button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-        .form-group button:hover {
-            background-color: #45a049;
-        }
-        .back-button {
-            background-color: #555;
-            text-decoration: none;
-            padding: 10px 20px;
-            color: white;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 20px;
-        }
-        .back-button:hover {
-            background-color: #333;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
     <div class="container">

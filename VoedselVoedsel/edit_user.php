@@ -1,42 +1,41 @@
 <?php
 session_start();
-include 'config.php';
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'directie') {
-    echo "Toegang geweigerd.";
-    exit();
-}
-
-
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    echo "Ongeldige gebruiker ID.";
-    exit();
-}
+// Vereist dat de gebruiker een van de toegestane rollen heeft (directie of magazijnmedewerker)
+User::requireRole(['directie']);
 
 $userID = $_GET['id'];
 
 
-$query = "SELECT * FROM users WHERE UserID = ?";
+$query = "SELECT UserID, Username, Role, PasswordHash FROM users WHERE UserID = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $userID);
 $stmt->execute();
 $result = $stmt->get_result();
+
 if ($result->num_rows === 0) {
     echo "Gebruiker niet gevonden.";
     exit();
 }
+
 $user = $result->fetch_assoc();
 
-
+// Update gebruiker als het formulier is ingediend
 if (isset($_POST['update_user'])) {
     $username = $_POST['username'];
     $role = $_POST['role'];
-    $password = isset($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : $user['PasswordHash'];
+    $password = isset($_POST['password']) && !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : $user['PasswordHash'];
 
+    // Query om gebruiker bij te werken
     $updateQuery = "UPDATE users SET Username = ?, Role = ?, PasswordHash = ? WHERE UserID = ?";
     $stmt = $conn->prepare($updateQuery);
     $stmt->bind_param("sssi", $username, $role, $password, $userID);
+
     if ($stmt->execute()) {
         echo "Gebruiker succesvol bijgewerkt.";
         header("Location: manage_users.php");
@@ -54,75 +53,13 @@ if (isset($_POST['update_user'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gebruiker Bewerken</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        h1 {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        form {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        label {
-            display: block;
-            margin: 10px 0 5px;
-        }
-
-        input[type="text"], input[type="password"], select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        input[type="submit"] {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-
-        .back-button {
-            background-color: #555; 
-            display: inline-block;
-            padding: 10px 20px;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-
-        .back-button:hover {
-            background-color: #333;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
     <h1>Gebruiker Bewerken</h1>
 
-   
     <p><a href="manage_users.php" class="back-button">Terug naar Beheer Gebruikers</a></p>
 
-   
     <form method="post" action="edit_user.php?id=<?php echo $userID; ?>">
         <label for="username">Gebruikersnaam:</label>
         <input type="text" id="username" name="username" value="<?php echo htmlspecialchars($user['Username']); ?>" required><br>

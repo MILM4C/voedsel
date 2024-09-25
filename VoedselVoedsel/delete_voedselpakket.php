@@ -1,12 +1,13 @@
 <?php
 session_start();
-include 'config.php';  
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
-// Role checkerererers man im going craaazzzy
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
+
+// Vereist dat de gebruiker een van de toegestane rollen heeft 
+User::requireRole(['directie', 'vrijwilliger']);
 
 // Verwijder het voedselpakket
 if (isset($_GET['pakket_id'])) {

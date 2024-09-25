@@ -1,28 +1,28 @@
 <?php
 session_start();
-include 'config.php';  
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
-// Checkerrol voor ingelogde gebruikers
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
+
+// Vereist dat de gebruiker een van de toegestane rollen heeft 
+User::requireRole(['directie', 'vrijwilliger']);
 
 // Haal de lijst van klanten op
 $query_klanten = "SELECT KlantID, CONCAT(Voornaam, ' ', Achternaam) AS Naam FROM klanten";
 $result_klanten = $conn->query($query_klanten);
 
-// Haal de lijst van producten op met een positieve voorraad
+// Haal de lijst van producten op 
 $query_producten = "SELECT ProductID, ProductNaam, Voorraad FROM producten WHERE Voorraad > 0";
 $result_producten = $conn->query($query_producten);
 
-// voegt het nieuwe pakket toe
+// Voegt het nieuwe pakket toe
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $samenstelling = $_POST['samenstelling'];
     $datumAangemaakt = date('Y-m-d');
     $klantID = $_POST['klant'];  // Klant die het pakket ontvangt
 
-    
     $conn->begin_transaction();
 
     try {
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare($query);
         $stmt->bind_param("ssi", $samenstelling, $datumAangemaakt, $klantID);
         $stmt->execute();
-        $pakketID = $stmt->insert_id;  // Het ID van het  toegevoegde pakket
+        $pakketID = $stmt->insert_id;  // Het ID van het toegevoegde pakket
         $stmt->close();
 
         // Voeg producten toe aan het pakket
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute();
                     $stmt->close();
 
-                    
+                    // Update de voorraad
                     $query = "UPDATE producten SET Voorraad = Voorraad - ? WHERE ProductID = ?";
                     $stmt = $conn->prepare($query);
                     $stmt->bind_param("ii", $aantal, $productID);
@@ -65,15 +65,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Controleer of de combinatie KlantID en PakketID al bestaat
-        $query = "SELECT COUNT(*) FROM klant_pakket WHERE KlantID = ? AND PakketID = ?";
+        $query = "
+            SELECT k.KlantID 
+            FROM klant_pakket kp
+            JOIN klanten k ON kp.KlantID = k.KlantID
+            WHERE kp.KlantID = ? AND kp.PakketID = ?
+        ";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("ii", $klantID, $pakketID);
         $stmt->execute();
-        $stmt->bind_result($count);
-        $stmt->fetch();
-        $stmt->close();
+        $result = $stmt->get_result();
 
-        if ($count == 0) {
+        if ($result->num_rows == 0) {
             // Voeg de klant-pakket relatie toe
             $query = "INSERT INTO klant_pakket (KlantID, PakketID, DatumToegewezen) VALUES (?, ?, ?)";
             $stmt = $conn->prepare($query);
@@ -97,87 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voedselpakket Maken</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        .form-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            margin: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .form-group {
-            display: flex;
-            gap: 20px;
-        }
-        .form-group .form-left, .form-group .form-right {
-            flex: 1;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        textarea, select, input[type="number"], input[type="submit"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        textarea {
-            resize: none;
-        }
-        input[type="submit"] {
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        .button {
-            display: inline-block;
-            padding: 10px 15px;
-            font-size: 16px;
-            color: white;
-            background-color: #007BFF;
-            text-align: center;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-top: 10px;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
 

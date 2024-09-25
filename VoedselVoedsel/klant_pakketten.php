@@ -41,55 +41,7 @@ $result = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Klant Pakketten</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        table {
-            width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-
-        table, th, td {
-            border: 1px solid black;
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #007BFF;
-            color: white;
-        }
-
-        .back-button {
-            display: block;
-            width: 150px;
-            margin: 20px auto;
-            padding: 10px;
-            background-color: #007BFF;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .back-button:hover {
-            background-color: #0056b3;
-        }
-
-        .no-results {
-            text-align: center;
-            margin: 20px auto;
-        }
-    </style>
+    <link rel="stylesheet" href="css/klantpakket.css"> 
 </head>
 <body>
     <h1 style="text-align:center;">Pakketten van <?php echo htmlspecialchars($klant['Voornaam'] . ' ' . $klant['Achternaam']); ?></h1>

@@ -1,23 +1,16 @@
 <?php
 session_start();
-require_once 'config.php'; 
+include 'config.php';  
+include 'autoload.php';  // Zorg ervoor dat de Klant klasse wordt geladen
 
-// Controleer of de gebruiker ingelogd is
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Controleer of de gebruiker is ingelogd
+User::requireLogin();
 
-// Haal klanten op uit de database, inclusief hun wensen
-$sql = "SELECT k.KlantID, k.Voornaam, k.Achternaam, k.Adres, k.Telefoonnummer, k.Email, 
-               g.AantalVolwassenen, g.AantalKinderen, g.AantalBabies, 
-               GROUP_CONCAT(w.WensOmschrijving SEPARATOR ', ') AS Wensen
-        FROM klanten k
-        LEFT JOIN gezinssamenstelling g ON k.KlantID = g.GezinID
-        LEFT JOIN klantwensen kw ON k.KlantID = kw.KlantID
-        LEFT JOIN wensen w ON kw.WensID = w.WensID
-        GROUP BY k.KlantID";
-$result = $conn->query($sql);
+// Maak een nieuwe instantie van de Klant klasse
+$klantClass = new Klant($conn);
+
+// Haal alle klanten op
+$klanten = $klantClass->getAllKlanten();
 ?>
 
 <!DOCTYPE html>
@@ -26,61 +19,14 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Klantenbeheer</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+    <link rel="stylesheet" href="css/klantbeheer.css"> 
+    <script>
+        function confirmDelete(klantID) {
+            if (confirm("Weet je zeker dat je deze klant wilt verwijderen?")) {
+                window.location.href = "delete_klant.php?klant_id=" + klantID;
+            }
         }
-
-        table {
-            width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-
-        table, th, td {
-            border: 1px solid black;
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #007BFF;
-            color: white;
-        }
-
-        .add-button, .back-button {
-            display: block;
-            width: 200px;
-            margin: 20px auto;
-            padding: 10px;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .add-button {
-            background-color: #28a745;
-        }
-
-        .add-button:hover {
-            background-color: #218838;
-        }
-
-        .back-button {
-            background-color: #6c757d;
-        }
-
-        .back-button:hover {
-            background-color: #5a6268;
-        }
-    </style>
+    </script>
 </head>
 <body>
     <h1 style="text-align:center;">Klantenbeheer</h1>
@@ -101,8 +47,8 @@ $result = $conn->query($sql);
             <th>Wensen</th>
             <th>Acties</th>
         </tr>
-        <?php if ($result->num_rows > 0): ?>
-            <?php while ($row = $result->fetch_assoc()): ?>
+        <?php if ($klanten->num_rows > 0): ?>
+            <?php while ($row = $klanten->fetch_assoc()): ?>
                 <tr>
                     <td><?php echo $row['KlantID']; ?></td>
                     <td><?php echo $row['Voornaam'] . " " . $row['Achternaam']; ?></td>
@@ -113,7 +59,11 @@ $result = $conn->query($sql);
                     <td><?php echo $row['AantalKinderen']; ?></td>
                     <td><?php echo $row['AantalBabies']; ?></td>
                     <td><?php echo !empty($row['Wensen']) ? $row['Wensen'] : 'Geen wensen'; ?></td>
-                    <td><a href="klant_pakketten.php?klant_id=<?php echo $row['KlantID']; ?>">Bekijk Pakketten</a></td>
+                    <td>
+                        <a href="klant_pakketten.php?klant_id=<?php echo $row['KlantID']; ?>" class="pakket-button">Bekijk Pakketten</a>
+                        <a href="edit_klant.php?klant_id=<?php echo $row['KlantID']; ?>" class="edit-button">Bewerken</a>
+                        <a href="javascript:void(0);" onclick="confirmDelete(<?php echo $row['KlantID']; ?>);" class="delete-button">Verwijderen</a>
+                    </td>
                 </tr>
             <?php endwhile; ?>
         <?php else: ?>

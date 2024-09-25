@@ -1,18 +1,13 @@
 <?php
 session_start();
-include 'config.php';  
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
-// Controleer of de gebruiker ingelogd is
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
 
-// Role checkereeeeeeeeeeeeeeer
-if ($_SESSION['role'] !== 'directie' && $_SESSION['role'] !== 'magazijnmedewerker') {
-    echo "Je hebt geen toegang tot deze pagina.";
-    exit();
-}
+// Vereist dat de gebruiker een van de toegestane rollen heeft (directie of magazijnmedewerker)
+User::requireRole(['directie', 'magazijnmedewerker']);
 
 // Verkrijg leverancierID uit de GET-parameter
 if (!isset($_GET['leverancierID']) || empty($_GET['leverancierID'])) {
@@ -22,8 +17,8 @@ if (!isset($_GET['leverancierID']) || empty($_GET['leverancierID'])) {
 
 $leverancierID = intval($_GET['leverancierID']);
 
-// Verkrijg de leveringen van de leverancier
-$query = "SELECT * FROM leveringen WHERE LeverancierID = ?";
+// Verkrijg de leveringen van de leverancier, specifiek voor bepaalde kolommen
+$query = "SELECT LeveringID, Datum, Beschrijving FROM leveringen WHERE LeverancierID = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $leverancierID);
 $stmt->execute();
@@ -36,43 +31,11 @@ $result = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leveringen voor Leverancier</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        .button {
-            display: inline-block;
-            padding: 10px 15px;
-            font-size: 16px;
-            color: white;
-            background-color: #007BFF;
-            text-align: center;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
-        .back-button {
-            background-color: #6c757d;
-        }
-        .back-button:hover {
-            background-color: #5a6268;
-        }
-    </style>
+    <link rel="stylesheet" href="css/leverancier.css"> 
 </head>
 <body>
     <h1>Leveringen voor Leverancier ID: <?php echo htmlspecialchars($leverancierID); ?></h1>
-    <a href="view_suppliers.php" class="button back-button">Terug naar Leveranciers</a>
+    <a href="view_suppliers.php" class="button">Terug naar Leveranciers</a>
     <?php if ($result->num_rows > 0): ?>
         <table>
             <tr>

@@ -1,41 +1,31 @@
 <?php
 session_start();
-include 'config.php';
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
+include 'classes/Product.php'; // Zorg ervoor dat de Product klasse wordt geladen
 
-// Role checkeeeerrr
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['directie', 'magazijnmedewerker'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
+
+// Vereist dat de gebruiker een van de toegestane rollen heeft (directie of magazijnmedewerker)
+User::requireRole(['directie', 'magazijnmedewerker']);
+
+// Maak een nieuwe instantie van de Product klasse
+$productClass = new Product($conn);
 
 // Zoekfunctie
 $search = '';
 if (isset($_GET['search'])) {
     $search = $_GET['search'];
-    $query = "SELECT * FROM producten WHERE 
-              ProductNaam LIKE ? OR 
-              Categorie LIKE ? OR 
-              Voorraad LIKE ? OR 
-              Streepjescode LIKE ? OR 
-              EANnummer LIKE ?";
-    $searchTerm = "%$search%";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("sssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
-} else {
-    $query = "SELECT * FROM producten";
-    $stmt = $conn->prepare($query);
 }
 
-$stmt->execute();
-$result = $stmt->get_result();
+// Haal alle producten op (met of zonder zoekterm)
+$result = $productClass->getAllProducts($search);
 
 // Product verwijderen
 if (isset($_POST['delete_product'])) {
     $productID = $_POST['delete_product_id'];
-    $deleteQuery = "DELETE FROM producten WHERE ProductID = ?";
-    $stmt = $conn->prepare($deleteQuery);
-    $stmt->bind_param("i", $productID);
-    if ($stmt->execute()) {
+    if ($productClass->deleteProduct($productID)) {
         echo "Product succesvol verwijderd.";
         header("Location: manage_products.php");
         exit();
@@ -51,88 +41,7 @@ if (isset($_POST['delete_product'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Producten Beheren</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 10px 15px;
-            margin: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-            background-color: #4CAF50; 
-            border: none;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        .button:hover {
-            background-color: #45a049;
-        }
-
-        .edit-button {
-            background-color: #008CBA; 
-        }
-
-        .edit-button:hover {
-            background-color: #007bb5;
-        }
-
-        .delete-button {
-            background-color: #f44336; 
-        }
-
-        .delete-button:hover {
-            background-color: #e60000;
-        }
-
-        .search-bar {
-            margin-bottom: 20px;
-        }
-
-        input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            width: 300px;
-            margin-right: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        input[type="submit"] {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        .back-button {
-            background-color: #555; 
-        }
-
-        .back-button:hover {
-            background-color: #333;
-        }
-    </style>
+    <link rel="stylesheet" href="css/productlijst.css"> 
 </head>
 <body>
     <h1>Productenlijst</h1>
@@ -147,7 +56,7 @@ if (isset($_POST['delete_product'])) {
     </div>
 
     <?php if ($_SESSION['role'] === 'directie' || $_SESSION['role'] === 'magazijnmedewerker'): ?>
-        <p><a href="add_product.php" class="button">Nieuw Product Toevoegen</a></p>
+        <p><a href="add_product.php" class="button back-button">Nieuw Product Toevoegen</a></p>
     <?php endif; ?>
 
     <?php if ($result->num_rows > 0): ?>

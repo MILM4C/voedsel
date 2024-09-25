@@ -1,12 +1,13 @@
 <?php
 session_start();
-require_once 'config.php'; 
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
-// Controleer of de gebruiker ingelogd is
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
+
+// Vereist dat de gebruiker een van de toegestane rollen heeft (directie of magazijnmedewerker)
+User::requireRole(['directie']);
 
 // Verwerk formulier 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {

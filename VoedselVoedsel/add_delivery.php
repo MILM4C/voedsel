@@ -1,24 +1,19 @@
 <?php
 session_start();
-include 'config.php';  
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
-// Controleer of de gebruiker ingelogd is
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
 
-// Role checker zoals alltijd
-if ($_SESSION['role'] !== 'directie' && $_SESSION['role'] !== 'magazijnmedewerker') {
-    echo "Je hebt geen toegang tot deze pagina.";
-    exit();
-}
+// Vereist dat de gebruiker een van de toegestane rollen heeft 
+User::requireRole(['directie', 'magazijnmedewerker']);
 
-// Variabelen i
+// Variabelen
 $leverancierID = $datum = $beschrijving = '';
 $error_message = '';
 
-// nieuwe levering + productent
+// nieuwe levering + producten
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_delivery'])) {
         $leverancierID = intval($_POST['leverancierID']);
@@ -41,11 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmt->close();
 
-           
             $conn->begin_transaction();
 
             try {
-                
                 $query = "INSERT INTO leveringen (LeverancierID, Datum, Beschrijving) VALUES (?, ?, ?)";
                 $stmt = $conn->prepare($query);
                 if ($stmt === false) {
@@ -73,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute();
                 }
 
-                
                 $conn->commit();
                 echo "Levering en producten succesvol toegevoegd!";
             } catch (Exception $e) {
@@ -97,40 +89,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nieuwe Levering Toevoegen</title>
     <style>
+        :root {
+            --primary-color: #007BFF;
+            --primary-hover: #0056b3;
+            --secondary-color: #6c757d;
+            --secondary-hover: #5a6268;
+            --error-color: #dc3545;
+            --border-color: #ddd;
+            --input-background: #fff;
+            --border-radius: 5px;
+            --padding: 12px;
+            --font-family: 'Arial', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        a.button {
+            display: inline-block;
+            padding: var(--padding);
+            font-size: 16px;
+            text-decoration: none;
+            color: white;
+            background-color: var(--secondary-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+
+        a.button:hover {
+            background-color: var(--secondary-hover);
+        }
+
         .form-container {
             max-width: 800px;
             margin: auto;
             padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            background-color: var(--input-background);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        .form-container input, .form-container textarea, .form-container select {
+
+        .form-container input, 
+        .form-container textarea, 
+        .form-container select {
             width: 100%;
-            padding: 10px;
-            margin: 5px 0 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: var(--padding);
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--input-background);
+            font-size: 16px;
         }
+
+        .form-container input:focus,
+        .form-container textarea:focus,
+        .form-container select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
         .form-container button {
-            padding: 10px 15px;
+            width: 100%;
+            padding: var(--padding);
             font-size: 16px;
             color: white;
-            background-color: #007BFF;
+            background-color: var(--primary-color);
             border: none;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             cursor: pointer;
+            transition: background-color 0.3s;
         }
+
         .form-container button:hover {
-            background-color: #0056b3;
+            background-color: var(--primary-hover);
         }
-        .back-button {
-            background-color: #6c757d;
-        }
-        .back-button:hover {
-            background-color: #5a6268;
-        }
+
         .error {
-            color: #dc3545;
+            color: var(--error-color);
+            margin-top: 10px;
+        }
+
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 15px;
+            }
+
+            .form-container button {
+                padding: 10px;
+            }
         }
     </style>
 </head>

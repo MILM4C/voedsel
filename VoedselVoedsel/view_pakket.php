@@ -34,34 +34,7 @@ if (isset($_GET['pakket_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inhoud van Pakket</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        .button {
-            display: inline-block;
-            padding: 10px 15px;
-            font-size: 16px;
-            color: white;
-            background-color: #007BFF;
-            text-align: center;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-top: 10px;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" href="css/voedselpakket.css"> 
 </head>
 <body>
     <h1>Inhoud van Pakket ID: <?php echo htmlspecialchars($pakketID); ?></h1>

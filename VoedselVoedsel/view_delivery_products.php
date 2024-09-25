@@ -1,18 +1,13 @@
 <?php
 session_start();
-include 'config.php';  
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
-// Controleer of de gebruiker ingelogd is
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
 
-// Role checkerers
-if ($_SESSION['role'] !== 'directie' && $_SESSION['role'] !== 'magazijnmedewerker') {
-    echo "Je hebt geen toegang tot deze pagina.";
-    exit();
-}
+// Vereist dat de gebruiker een van de toegestane rollen heeft (directie of magazijnmedewerker)
+User::requireRole(['directie', 'magazijnmedewerker']);
 
 // Verkrijg leveringID uit de GET-parameter
 if (!isset($_GET['leveringID']) || empty($_GET['leveringID'])) {
@@ -31,8 +26,9 @@ $stmt->bind_result($leverancierID);
 $stmt->fetch();
 $stmt->close();
 
-// Verkrijg de producten van de levering
-$query = "SELECT * FROM levering_producten_temp WHERE LeveringID = ?";
+// Verkrijg de producten van de levering, specificeer de kolommen
+$query = "SELECT LeveringProductTempID, LeveringID, ProductNaam, Categorie, Streepjescode, Voorraad, Omschrijving, EANnummer 
+          FROM levering_producten_temp WHERE LeveringID = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $leveringID);
 $stmt->execute();
@@ -45,39 +41,7 @@ $result = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Producten van Levering</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        .button {
-            display: inline-block;
-            padding: 10px 15px;
-            font-size: 16px;
-            color: white;
-            background-color: #007BFF;
-            text-align: center;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
-        .back-button {
-            background-color: #6c757d;
-        }
-        .back-button:hover {
-            background-color: #5a6268;
-        }
-    </style>
+    <link rel="stylesheet" href="css/leverancier.css"> 
 </head>
 <body>
     <h1>Producten van Levering ID: <?php echo htmlspecialchars($leveringID); ?></h1>

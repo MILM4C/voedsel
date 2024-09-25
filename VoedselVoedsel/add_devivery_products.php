@@ -1,18 +1,13 @@
 <?php
 session_start();
-include 'config.php';  
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
-// Controleer of de gebruiker ingelogd is
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
 
-// Role checker n5395039503
-if ($_SESSION['role'] !== 'directie' && $_SESSION['role'] !== 'magazijnmedewerker') {
-    echo "Je hebt geen toegang tot deze pagina.";
-    exit();
-}
+// Vereist dat de gebruiker een van de toegestane rollen heeft 
+User::requireRole(['directie', 'magazijnmedewerker']);
 
 // Verkrijg leveringID uit de GET-parameter
 if (!isset($_GET['leveringID']) || empty($_GET['leveringID'])) {

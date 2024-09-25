@@ -1,18 +1,13 @@
 <?php
 session_start();
-include 'config.php';  
+include 'config.php';   // Zorg dat dit je databaseconfiguratie bevat
+include 'autoload.php'; // Hiermee wordt de User-klasse automatisch geladen
 
-// Controleer of de gebruiker ingelogd is
-if (!isset($_SESSION['user_id'])) {
-    echo "Toegang geweigerd.";
-    exit();
-}
+// Vereist dat de gebruiker is ingelogd
+User::requireLogin();
 
-// Role checkerers
-if ($_SESSION['role'] !== 'directie' && $_SESSION['role'] !== 'magazijnmedewerker') {
-    echo "Je hebt geen toegang tot deze pagina.";
-    exit();
-}
+// Vereist dat de gebruiker een van de toegestane rollen heeft (directie of magazijnmedewerker)
+User::requireRole(['directie', 'magazijnmedewerker']);
 
 // Verwijder een leverancier en alle gerelateerde leveringen en producten
 if (isset($_GET['delete'])) {
@@ -63,8 +58,8 @@ if (isset($_GET['delete'])) {
     }
 }
 
-// Lijst leveranciers
-$query = "SELECT * FROM leveranciers";
+// Lijst leveranciers met specifieke kolommen
+$query = "SELECT LeverancierID, Bedrijfsnaam, Adres, Contactpersoon, Telefoonnummer, Emailadres FROM leveranciers";
 $result = $conn->query($query);
 ?>
 
@@ -74,51 +69,13 @@ $result = $conn->query($query);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leveranciers Beheren</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        .button {
-            display: inline-block;
-            padding: 10px 15px;
-            font-size: 16px;
-            color: white;
-            background-color: #007BFF;
-            text-align: center;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
-        .delete-button {
-            background-color: #dc3545;
-        }
-        .delete-button:hover {
-            background-color: #c82333;
-        }
-        .back-button {
-            background-color: #6c757d;
-        }
-        .back-button:hover {
-            background-color: #5a6268;
-        }
-    </style>
+    <link rel="stylesheet" href="css/view_suppliers.css"> 
 </head>
 <body>
     <h1>Leveranciers Beheren</h1>
     <?php if ($_SESSION['role'] === 'directie' || $_SESSION['role'] === 'magazijnmedewerker'): ?>
-        <a href="add_supplier.php" class="button">Leverancier Toevoegen</a>
-        <a href="add_delivery.php" class="button">Nieuwe Levering Toevoegen</a>
+        <a href="add_supplier.php" class="button add-button">Leverancier Toevoegen</a>
+        <a href="add_delivery.php" class="button add-button">Nieuwe Levering Toevoegen</a>
     <?php endif; ?>
     <a href="user_dashboard.php" class="button back-button">Terug naar Dashboard</a> 
     <table>
@@ -141,9 +98,9 @@ $result = $conn->query($query);
             <td><?php echo htmlspecialchars($row['Emailadres']); ?></td>
             <td>
                 <?php if ($_SESSION['role'] === 'directie' || $_SESSION['role'] === 'magazijnmedewerker'): ?>
-                    <a href="edit_supplier.php?id=<?php echo $row['LeverancierID']; ?>" class="button">Bewerken</a>
+                    <a href="edit_supplier.php?id=<?php echo $row['LeverancierID']; ?>" class="button add-button">Bewerken</a>
                     <a href="view_suppliers.php?delete=<?php echo $row['LeverancierID']; ?>" class="button delete-button" onclick="return confirm('Weet je zeker dat je deze leverancier wilt verwijderen?');">Verwijderen</a>
-                    <a href="view_delivery_contents.php?leverancierID=<?php echo $row['LeverancierID']; ?>" class="button">Bekijk Leveringen</a>
+                    <a href="view_delivery_contents.php?leverancierID=<?php echo $row['LeverancierID']; ?>" class="button add-button">Bekijk Leveringen</a>
                 <?php endif; ?>
             </td>
         </tr>
